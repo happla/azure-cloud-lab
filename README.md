@@ -1,3 +1,7 @@
+![Azure](https://img.shields.io/badge/Azure-Cloud-blue)
+![Terraform](https://img.shields.io/badge/Terraform-IaC-purple)
+![Status](https://img.shields.io/badge/Status-V1.0-success)
+
 # Azure cloud lab
 
 A hands-on Azure infrastructure project built with Terraform.
@@ -48,7 +52,7 @@ flowchart TB
     Internet --> PIP
     PIP --> NIC
     NIC --> VM
-    NSG -. protects .-> Subnet
+    NSG -. associated with .-> Subnet
     RG -. contains .-> VNet
     RG -. contains .-> PIP
 ```
@@ -172,6 +176,27 @@ The current configuration is intentionally simple for the V1 lab. Future version
 - Using managed identities
 - Improving secret/key management
 - Adding monitoring and logging
+
+## Azure Resources
+
+The deployed resources can be inspected using the Azure CLI:
+
+```
+az resource list \
+  --resource-group rg-azure-cloud-lab \
+  --output table
+```
+
+Then create the screenshot:
+
+```
+az resource list --resource-group rg-azure-cloud-lab --output table
+```
+
+![Azure resources](docs/azure-resources.png)
+
+The V1 deployment consists of a resource group containing the network,
+security, public IP, network interface, and Ubuntu virtual machine.
 
 ## Lessons Learned
 
