@@ -73,3 +73,32 @@ resource "azurerm_subnet_network_security_group_association" "lab" {
   subnet_id                 = azurerm_subnet.lab.id
   network_security_group_id = azurerm_network_security_group.lab.id
 }
+
+resource "azurerm_linux_virtual_machine" "lab" {
+  name                = "vm-azure-cloud-lab"
+  resource_group_name = azurerm_resource_group.lab.name
+  location            = azurerm_resource_group.lab.location
+  size                = "Standard_B2s_v2"
+  admin_username      = "azureuser"
+
+  network_interface_ids = [
+    azurerm_network_interface.lab.id
+  ]
+
+  admin_ssh_key {
+    username   = "azureuser"
+    public_key = var.ssh_public_key
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "ubuntu-24_04-lts"
+    sku       = "server"
+    version   = "latest"
+  }
+}
