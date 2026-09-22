@@ -5,8 +5,7 @@ app = Flask(__name__)
 
 @app.route("/")
 def home():
-    return "Azure Cloud Lab V2 - Dockerized application\n"
-
+   return "Azure Cloud Lab V2 - CI/CD deployment works!\n"
 
 @app.route("/health")
 def health():
