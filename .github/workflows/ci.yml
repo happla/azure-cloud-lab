@@ -1,4 +1,4 @@
-name: CI
+name: CI/CD
 
 on:
   push:
@@ -12,10 +12,10 @@ permissions:
   packages: write
 
 jobs:
-  build:
+  build-test-push:
     runs-on: ubuntu-latest
 
-  steps:
+    steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
