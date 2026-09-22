@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - v2-docker-cicd
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t azure-cloud-lab:test .
+
+      - name: Run container
+        run: |
+          docker run -d \
+            --name azure-cloud-lab \
+            -p 8080:8080 \
+            azure-cloud-lab:test
+
+      - name: Test health endpoint
+        run: |
+          sleep 2
+          curl --fail http://localhost:8080/health
+
+      - name: Stop container
+        if: always()
+        run: docker stop azure-cloud-lab
