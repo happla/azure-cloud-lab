@@ -4,7 +4,6 @@
 ![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-CI%2FCD-black)
 ![Status](https://img.shields.io/badge/Status-V2.0-success)
 
-<div id="top"></div>
 # Azure cloud lab
 
 A hands-on Azure infrastructure project built with Terraform, Docker and Github Actions.
@@ -72,7 +71,7 @@ flowchart TB
 ### V2 CI/CD and Container Deployment
 
 ```mermaid
-flowchart LR
+flowchart TB
     Developer["Developer"] --> Git["GitHub Repository"]
     Git --> Actions["GitHub Actions"]
     Actions --> Build["Docker Build"]
@@ -88,6 +87,8 @@ flowchart LR
 ```
 
 V2 extends the original infrastructure by automatically building, testing, publishing, and deploying the application whenever changes are pushed to the development branch.
+
+![Validation](docs/applicationinbrowser.png)
 
 ## Infrastructure
 
@@ -185,7 +186,7 @@ The pipeline performs:
 
 The deployment uses a dedicated SSH key stored as a GitHub Actions secret.
 
-![GitHub Actions CI/CD](docs/github-actions.png)
+![GitHub Actions CI/CD](docs/githubactions.png)
 
 ## Validation
 
@@ -213,7 +214,7 @@ terraform apply
  The deployment encountered Azure regional and capacity restrictions during development. The project was adapted by selecting an available Azure region and VM SKU.
 This was an intentional part of the learning process: Azure resource availability can depend on subscription, region, SKU and current capacity.
 
-![Running application](docs/running-app.png)
+![Running application](docs/azure-resources.png)
 
 ## SSH Access
 
@@ -239,7 +240,7 @@ curl https://google.com
 
 The VM successfully received a private address from the Azure subnet and had outbound Internet connectivity.
 
-![Docker container running on Azure VM](docs/docker-container.png)
+![Docker container running on Azure VM](docs/azurevm.png)
 
 ## Security
 
@@ -281,8 +282,6 @@ az resource list \
 
 The V1 deployment consists of a resource group containing the network,
 security, public IP, network interface, and Ubuntu virtual machine.
-
-## Lessons Learned
 
 ### Infrastructure as Code
 
@@ -423,7 +422,6 @@ Implemented:
 ├── Dockerfile
 └── README.md
 
-<div align="right">
-  <a href="#top"> Back to Top</a>
-</div>
 ```
+
+[Back to top](#top)
