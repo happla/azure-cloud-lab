@@ -7,23 +7,37 @@ on:
       - v2-docker-cicd
   pull_request:
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
 
-    steps:
+  steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Build Docker image
-        run: docker build -t azure-cloud-lab:test .
+        run: |
+          docker build \
+            -t ghcr.io/${{ github.repository }}:latest \
+            .
 
       - name: Run container
         run: |
           docker run -d \
             --name azure-cloud-lab \
             -p 8080:8080 \
-            azure-cloud-lab:test
+            ghcr.io/${{ github.repository }}:latest
 
       - name: Test health endpoint
         run: |
@@ -33,3 +47,7 @@ jobs:
       - name: Stop container
         if: always()
         run: docker stop azure-cloud-lab
+
+      - name: Push Docker image
+        run: |
+          docker push ghcr.io/${{ github.repository }}:latest
