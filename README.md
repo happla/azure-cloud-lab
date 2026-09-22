@@ -214,8 +214,6 @@ terraform apply
  The deployment encountered Azure regional and capacity restrictions during development. The project was adapted by selecting an available Azure region and VM SKU.
 This was an intentional part of the learning process: Azure resource availability can depend on subscription, region, SKU and current capacity.
 
-![Running application](docs/azure-resources.png)
-
 ## SSH Access
 
 The VM is accessed using an ED25519 SSH key.
