@@ -1,19 +1,27 @@
 ![Azure](https://img.shields.io/badge/Azure-Cloud-blue)
 ![Terraform](https://img.shields.io/badge/Terraform-IaC-purple)
-![Status](https://img.shields.io/badge/Status-V1.0-success)
+![Docker](https://img.shields.io/badge/Docker-Container-blue)
+![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-CI%2FCD-black)
+![Status](https://img.shields.io/badge/Status-V2.0-success)
 
+<div id="top"></div>
 # Azure cloud lab
 
-A hands-on Azure infrastructure project built with Terraform.
-The goal of this project is to learn and demonstrate practical cloud engineering concepts including Infrastructure as Code (IaC), Azure networking, Linux virtual machines, network security, SSH access, and infrastructure lifecycle management.
+A hands-on Azure infrastructure project built with Terraform, Docker and Github Actions.
+
+The project started as an Infrastructure as Code (IaC) lab and has evolved into an end-to-end cloud deployment platform.
 
 ## Table of Contents
 
 - [Architecture](#architecture)
-  - [Infrastructure](#infrastructure)
-  - [Network](#network)
+  - [V1 Infrastructure](#v1-infrastructure)
+  - [V2 CI/CD & container deployment](#v2-cicd-and-container-deployment)
+- [Infrastructure](#infrastructure)
+- [Network](#network)
 - [Terraform](#terraform)
-  - [Validation](#validation)
+- [Docker](#docker)
+- [CI/CD](#cicd)
+- [Validation](#validation)
 - [Deployment](#deployment)
 - [SSH Access](#ssh-access)
 - [Security](#security)
@@ -24,11 +32,15 @@ The goal of this project is to learn and demonstrate practical cloud engineering
   - [Networking](#networking)
   - [Git and Terraform](#git-and-terraform)
 - [Project Status](#project-status)
-  - [V1.0 — Complete](#v10--complete)
-  - [Planned V2](#planned-v2)
+  - [V1.0 - Complete](#v10--complete)
+  - [V2 - Complete](#v2-complete)
+  - [Planned V3](#planned-v3)
 - [Technologies](#technologies)
+- [Repository structure](#repository-structure)
 
 ## Architecture
+
+### V1 Infrastructure
 
 ```mermaid
 flowchart TB
@@ -57,6 +69,26 @@ flowchart TB
     RG -. contains .-> PIP
 ```
 
+### V2 CI/CD and Container Deployment
+
+```mermaid
+flowchart LR
+    Developer["Developer"] --> Git["GitHub Repository"]
+    Git --> Actions["GitHub Actions"]
+    Actions --> Build["Docker Build"]
+    Build --> Test["Container Health Test"]
+    Test --> GHCR["GitHub Container Registry"]
+    GHCR --> SSH["SSH Deployment"]
+    SSH --> VM["Azure VM"]
+    VM --> Docker["Docker"]
+    Docker --> App["Flask Application :8080"]
+
+    Internet["Internet"] --> NSG["Azure NSG"]
+    NSG --> App
+```
+
+V2 extends the original infrastructure by automatically building, testing, publishing, and deploying the application whenever changes are pushed to the development branch.
+
 ## Infrastructure
 
 The V1 deployment contains:
@@ -69,6 +101,15 @@ The V1 deployment contains:
 - Network Interface — nic-azure-cloud-lab
 - Linux Virtual Machine — vm-azure-cloud-lab
 - Ubuntu 24.04 LTS
+
+V2 adds:
+
+- Docker
+- Flask application
+- GitHub Actions
+- GitHub Container Registry
+- Automated SSH deployment
+- TCP port 8080
 
 ## Network
 
@@ -103,6 +144,49 @@ Terraform is used to:
 - Create the network interface
 - Deploy the Ubuntu virtual machine
 
+## Docker
+
+The Flask application is packaged as a Docker image and runs on the Azure VM.
+
+The image:
+
+- Uses Python 3.13 slim
+- Installs Flask from `requirements.txt`
+- Exposes port 8080
+- Runs the Flask application
+
+The image is built locally with:
+
+```
+docker build -t azure-cloud-lab:v2 .
+```
+
+The same image is built by GitHub Actions and published to GitHub Container Registry:
+
+```
+ghcr.io/happla/azure-cloud-lab:latest
+```
+
+## CI/CD
+
+GitHub Actions automates the application deployment process.
+
+The pipeline performs:
+
+1. Checkout repository
+2. Build Docker image
+3. Start the container
+4. Test `/health`
+5. Push the image to GHCR
+6. SSH into the Azure VM
+7. Pull the latest image
+8. Stop the previous container
+9. Start the new container
+
+The deployment uses a dedicated SSH key stored as a GitHub Actions secret.
+
+![GitHub Actions CI/CD](docs/github-actions.png)
+
 ## Validation
 
 The configuration is validated before deployment:
@@ -129,6 +213,8 @@ terraform apply
  The deployment encountered Azure regional and capacity restrictions during development. The project was adapted by selecting an available Azure region and VM SKU.
 This was an intentional part of the learning process: Azure resource availability can depend on subscription, region, SKU and current capacity.
 
+![Running application](docs/running-app.png)
+
 ## SSH Access
 
 The VM is accessed using an ED25519 SSH key.
@@ -153,22 +239,26 @@ curl https://google.com
 
 The VM successfully received a private address from the Azure subnet and had outbound Internet connectivity.
 
+![Docker container running on Azure VM](docs/docker-container.png)
+
 ## Security
 
-The V1 network security configuration allows inbound SSH:
+The V2 network security configuration allows inbound SSH:
 
 | Setting | Value |
 | :--- | :--- |
-| **Protocol** | TCP |
-| **Port** | `22` |
+| **SSH** | TCP 22 |
+| **Application** | TCP 8080 |
 | **Direction** | Inbound |
 | **Source** | Any (`*`) |
 
-> **Security note:** SSH is currently exposed to the Internet from any source (`0.0.0.0/0`). This is acceptable for this learning lab but should be restricted before using the infrastructure for anything beyond the lab.
+> **Security note:** SSH is currently exposed to the Internet from any source (`0.0.0.0/0`). This is acceptable for a learning lab but should be restricted before using the infrastructure for anything beyond the lab. SSH hardening is planned for V3.
+
+> port 8080 is required for the public Flask application.
 
 ## Future security improvements
 
-The current configuration is intentionally simple for the V1 lab. Future versions will improve the security model by:
+The current configuration is intentionally simple for this learning lab. Future versions will improve the security model by:
 
 - Restricting SSH to a specific source IP
 - Removing unnecessary public exposure
@@ -185,12 +275,6 @@ The deployed resources can be inspected using the Azure CLI:
 az resource list \
   --resource-group rg-azure-cloud-lab \
   --output table
-```
-
-Then create the screenshot:
-
-```
-az resource list --resource-group rg-azure-cloud-lab --output table
 ```
 
 ![Azure resources](docs/azure-resources.png)
@@ -240,10 +324,14 @@ The project provided practical experience with:
 
 Terraform-generated state and provider binaries should not be committed to Git.
 The repository therefore excludes:
+
+```text
 .terraform/
 terraform.tfstate
 terraform.tfstate.backup
 terraform.tfvars
+
+```
 
 while keeping:
 .terraform.lock.hcl
@@ -267,19 +355,36 @@ Implemented:
 - [x] Infrastructure validation
 - [x] Git version control
 
-### Planned V2
+### V2 - Complete
 
-The next stage will move beyond basic infrastructure and introduce more cloud engineering concepts:
+Implemented:
 
-- Deploy an application to the VM
-- Add Azure monitoring
-- Add logging
-- Add health checks
-- Add CI/CD with GitHub Actions
-- Introduce remote Terraform state
-- Improve network security
-- Automate infrastructure testing
-- Explore container deployment
+- [x] Flask application
+- [x] Docker containerization
+- [x] Application health endpoint
+- [x] GitHub Actions CI/CD
+- [x] Docker image build
+- [x] Container health testing
+- [x] GitHub Container Registry
+- [x] Automated SSH deployment
+- [x] Azure VM container deployment
+- [x] Public application endpoint
+- [x] Terraform-managed application port
+- [x] Dedicated deployment SSH key
+
+### Planned V3
+
+- [ ] Azure monitoring
+- [ ] Centralized logging
+- [ ] HTTPS/TLS
+- [ ] Reverse proxy
+- [ ] Kubernetes
+- [ ] Prometheus/Grafana
+- [ ] Azure managed identity
+- [ ] GitHub Actions OIDC
+- [ ] Remote Terraform state
+- [ ] Infrastructure testing
+- [ ] Improved network security
 
 ## Technologies
 
@@ -292,3 +397,33 @@ The next stage will move beyond basic infrastructure and introduce more cloud en
 - Networking
 - Infrastructure as Code
 - Cloud Networking
+
+## Repository Structure
+
+```
+.
+├── .github/
+│   └── workflows/
+│       └── ci.yml
+├── app/
+│   ├── app.py
+│   └── requirements.txt
+├── docs/
+│   ├── azure-resources.png
+│   ├── docker-container.png
+│   ├── github-actions.png
+│   └── running-app.png
+├── terraform/
+│   ├── main.tf
+│   ├── variables.tf
+│   ├── outputs.tf
+│   └── .terraform.lock.hcl
+├── .dockerignore
+├── .gitignore
+├── Dockerfile
+└── README.md
+
+<div align="right">
+  <a href="#top"> Back to Top</a>
+</div>
+```
