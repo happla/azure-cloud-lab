@@ -51,3 +51,19 @@ jobs:
       - name: Push Docker image
         run: |
           docker push ghcr.io/${{ github.repository }}:latest
+      
+      - name: Deploy to Azure VM
+        if: github.ref == 'refs/heads/v2-docker-cicd'
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.AZURE_VM_HOST }}
+          username: ${{ secrets.AZURE_VM_USER }}
+          key: ${{ secrets.AZURE_VM_SSH_KEY }}
+          script: |
+            docker pull ghcr.io/${{ github.repository }}:latest
+            docker stop azure-cloud-lab || true
+            docker rm azure-cloud-lab || true
+            docker run -d \
+              --name azure-cloud-lab \
+              -p 8080:8080 \
+              ghcr.io/${{ github.repository }}:latest
