@@ -2,7 +2,8 @@
 ![Terraform](https://img.shields.io/badge/Terraform-IaC-purple)
 ![Docker](https://img.shields.io/badge/Docker-Container-blue)
 ![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-CI%2FCD-black)
-![Status](https://img.shields.io/badge/Status-V2.0-success)
+![Status v1](https://img.shields.io/badge/Status-V1.0-blue)
+![Status v2](https://img.shields.io/badge/Status-V2.0-success)
 
 # Azure cloud lab
 
@@ -24,8 +25,8 @@ The project started as an Infrastructure as Code (IaC) lab and has evolved into 
 - [Deployment](#deployment)
 - [SSH Access](#ssh-access)
 - [Security](#security)
+  - [Cloud costs and VM management](#cloud-costs-and-vm-management)
   - [Future Security Improvements](#future-security-improvements)
-- [Lessons Learned](#lessons-learned)
   - [Infrastructure as Code](#infrastructure-as-code)
   - [Azure Resource Availability](#azure-resource-availability)
   - [Networking](#networking)
@@ -255,7 +256,34 @@ The V2 network security configuration allows inbound SSH:
 
 > port 8080 is required for the public Flask application.
 
-## Future security improvements
+### Cloud Costs and VM Management
+
+Cloud resources can incur costs while they are running, so development environments should be monitored and deallocated when not in use.
+
+**From the Azure Portal:**
+
+1. Open **Azure Portal → Virtual machines**
+2. Select `vm-azure-cloud-lab`
+3. Click **Stop**
+4. Verify that the VM status becomes **Stopped (deallocated)**
+
+**From the terminal:**
+
+```bash
+# Deallocate the VM
+az vm deallocate \
+  --resource-group <resource-group-name> \
+  --name <vm-name>
+
+# Start the VM
+az vm start \
+  --resource-group <resource-group-name> \
+  --name <vm-name>
+
+
+```
+
+### Future security improvements
 
 The current configuration is intentionally simple for this learning lab. Future versions will improve the security model by:
 
